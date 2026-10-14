@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ACS Project Archive - ระบบคลังข้อมูลและจัดการโครงงานนักศึกษา</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Prompt -->
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: 'Prompt', sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800">
+
+  <!-- 1. Header & Global Navigation -->
+  <header class="bg-[#1b6b70] text-white shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 md:px-6 py-3.5 flex flex-col md:flex-row justify-between items-center gap-4">
+      
+      <div class="flex items-center gap-3.5">
+        <div class="w-11 h-11 bg-white/20 rounded-2xl flex items-center justify-center text-xl shrink-0 shadow-inner">
+          <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+        <div>
+          <h1 class="text-lg md:text-xl font-bold tracking-tight">ACS Project Archive</h1>
+          <p class="text-xs text-teal-100 font-light">ระบบคลังข้อมูลและจัดการโครงงานนักศึกษา (Applied Computer Science)</p>
+        </div>
+      </div>
+
+      <nav class="flex flex-wrap items-center gap-1 md:gap-2 text-sm font-medium">
+        <button onclick="switchView('home')" id="navHome" class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 transition">หน้าแรก</button>
+        <button onclick="switchView('projects')" id="navProjects" class="px-3.5 py-2 rounded-xl bg-white/20 font-semibold shadow-sm transition">คลังโครงงาน</button>
+        <button onclick="switchView('stats')" id="navStats" class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 transition">สถิติและอาจารย์</button>
+        <button onclick="switchView('orders')" id="navOrders" class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 transition">คำสั่งแต่งตั้ง</button>
+      </nav>
+
+      <div class="text-xs text-teal-100 hidden md:block">
+        <i class="fa-solid fa-folder-tree mr-1.5"></i> Google Drive Auto-Detect Active
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ================= 2. VIEW: คลังโครงงาน (Projects) ================= -->
+  <div id="viewProjects" class="main-view">
+    <div class="bg-white border-b border-slate-200 shadow-sm">
+      <div class="max-w-7xl mx-auto px-4 md:px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div>
+          <p class="text-sm font-medium text-slate-600 italic">"Search, Discover, and Archive Applied Computer Science Innovations"</p>
+        </div>
+        <div class="flex gap-2 text-sm font-medium w-full sm:w-auto">
+          <button onclick="switchTab('491-492')" id="tab491" class="flex-1 sm:flex-none px-5 py-2 rounded-xl bg-[#288489] text-white shadow-sm transition">
+            วิชา 491-492 (Proposal & Study)
+          </button>
+          <button onclick="switchTab('495')" id="tab495" class="flex-1 sm:flex-none px-5 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition">
+            วิชา 495 (Special Project)
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto p-4 md:p-6 space-y-5">
+      <!-- แผงฟิลเตอร์หลัก -->
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div>
+          <select id="filterYear" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-300 text-slate-700 text-sm font-medium rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-teal-600">
+            <option value="">Academic Year (ทุกปีการศึกษา)</option>
+            <option value="2569">2569</option>
+            <option value="2568">2568</option>
+            <option value="2567">2567</option>
+            <option value="2566">2566</option>
+            <option value="2565">2565</option>
+            <option value="2564">2564</option>
+          </select>
+        </div>
+        <div>
+          <select id="filterRole" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-300 text-slate-700 text-sm font-medium rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-teal-600">
+            <option value="">Role (ทุกบทบาทอาจารย์)</option>
+            <option value="advisor">Advisor (ที่ปรึกษาหลัก)</option>
+            <option value="coAdvisor">Co-advisor (ที่ปรึกษาร่วม)</option>
+            <option value="committee">Committee (กรรมการสอบ)</option>
+          </select>
+        </div>
+        <div>
+          <select id="filterProf" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-300 text-slate-700 text-sm font-medium rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-teal-600">
+            <option value="">Professor Name (อาจารย์ทุกคน)</option>
+          </select>
+        </div>
+        <div class="relative">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-sm"></i>
+          <input type="text" id="searchInput" onkeyup="applyFilters()" placeholder="Search projects, keywords..." class="w-full bg-slate-50 border border-slate-300 text-slate-800 text-sm font-medium rounded-xl py-2.5 pl-10 pr-3 focus:outline-none focus:ring-2 focus:ring-teal-600">
+        </div>
+      </div>
+
+      <!-- แผงแสดงสถานะแท็กที่กำลังกรองอยู่ (Smart Tag Filter Bar) -->
+      <div id="activeTagBar" class="hidden flex items-center justify-between bg-teal-50 border border-teal-200 px-4 py-2.5 rounded-xl text-sm">
+        <div class="flex items-center gap-2 text-teal-900 font-medium">
+          <i class="fa-solid fa-filter text-teal-600"></i> กำลังกรองตามหมวดหมู่: <span id="activeTagName" class="bg-[#1b6b70] text-white px-2.5 py-0.5 rounded-lg text-xs font-bold"></span>
+        </div>
+        <button onclick="clearTagFilter()" class="text-xs text-teal-700 hover:text-teal-900 font-semibold underline flex items-center gap-1">
+          <i class="fa-solid fa-xmark"></i> ล้างตัวกรองแท็ก
+        </button>
+      </div>
+
+      <div id="projectsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+    </div>
+  </div>
+
+  <!-- ================= 3. VIEW: หน้าแรก (Home) ================= -->
+  <div id="viewHome" class="main-view hidden max-w-7xl mx-auto p-4 md:p-8 space-y-6">
+    <div class="bg-gradient-to-r from-[#1b6b70] to-[#288489] text-white rounded-3xl p-8 md:p-12 shadow-md flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="space-y-4 max-w-2xl">
+        <span class="bg-white/20 text-xs font-semibold px-3 py-1.5 rounded-full uppercase tracking-wider">Applied Computer Science Department</span>
+        <h2 class="text-2xl md:text-4xl font-bold tracking-tight">ระบบคลังข้อมูลและจัดการโครงงานนักศึกษา</h2>
+        <p class="text-teal-100 text-sm md:text-base leading-relaxed">"Search, Discover, and Archive Applied Computer Science Innovations" แหล่งรวมโครงงานนวัตกรรมเพื่อการศึกษา ค้นหาแนวทางโครงงานรุ่นพี่ และตรวจสอบภาระงานอาจารย์ได้อย่างง่ายดาย</p>
+        <div class="pt-2 flex gap-3">
+          <button onclick="switchView('projects')" class="bg-white text-[#1b6b70] px-6 py-3 rounded-2xl font-bold text-sm shadow hover:bg-teal-50 transition">
+            <i class="fa-solid fa-magnifying-glass mr-2"></i> ค้นหาโครงงาน
+          </button>
+          <button onclick="switchView('orders')" class="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-2xl font-bold text-sm shadow transition">
+            <i class="fa-solid fa-file-pdf mr-2"></i> เอกสารคำสั่งแต่งตั้ง
+          </button>
+        </div>
+      </div>
+      <div class="w-36 h-36 md:w-48 md:h-48 bg-white/10 rounded-full flex items-center justify-center text-white/40 text-7xl shrink-0 shadow-inner">
+        <i class="fa-solid fa-laptop-code"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 4. VIEW: สถิติและอาจารย์ (Stats) ================= -->
+  <div id="viewStats" class="main-view hidden max-w-7xl mx-auto p-4 md:p-6 space-y-6">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
+        <div>
+          <div id="statTotalProjects" class="text-2xl font-bold text-slate-800">0</div>
+          <div class="text-xs text-slate-500 mt-0.5">โครงงานทั้งหมด</div>
+        </div>
+        <div class="w-12 h-12 rounded-2xl bg-teal-50 text-[#1b6b70] flex items-center justify-center text-xl">
+          <i class="fa-solid fa-file-lines"></i>
+        </div>
+      </div>
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
+        <div>
+          <div class="text-2xl font-bold text-slate-800">16 ท่าน</div>
+          <div class="text-xs text-slate-500 mt-0.5">อาจารย์ผู้รับผิดชอบ</div>
+        </div>
+        <div class="w-12 h-12 rounded-2xl bg-teal-50 text-[#1b6b70] flex items-center justify-center text-xl">
+          <i class="fa-solid fa-user-group"></i>
+        </div>
+      </div>
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
+        <div>
+          <div class="text-sm font-bold text-emerald-600 flex items-center gap-1.5 mt-1">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span> ซิงค์ข้อมูลแล้ว
+          </div>
+          <div class="text-xs text-slate-500 mt-0.5">เชื่อมต่อ Google Sheets</div>
+        </div>
+        <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
+          <i class="fa-solid fa-cloud-arrow-down"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col sm:flex-row gap-3">
+      <div class="relative flex-1">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+        <input type="text" id="searchProfInput" onkeyup="renderStats()" placeholder="ค้นหาอาจารย์..." class="w-full bg-slate-50 border border-slate-300 text-slate-800 text-sm font-medium rounded-xl py-2.5 pl-10 pr-3 focus:outline-none focus:ring-2 focus:ring-teal-600">
+      </div>
+    </div>
+
+    <div id="statsContent" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+  </div>
+
+  <!-- ================= 5. VIEW: เอกสารคำสั่งแต่งตั้ง ================= -->
+  <div id="viewOrders" class="main-view hidden max-w-7xl mx-auto p-4 md:p-6 space-y-6">
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
+      <div>
+        <h2 class="text-xl font-bold text-[#1b6b70]"><i class="fa-solid fa-file-pdf mr-2"></i> คลังเอกสารคำสั่งแต่งตั้งคณะกรรมการ (Official Orders)</h2>
+      </div>
+      <div class="flex flex-wrap items-center gap-2 text-sm font-medium">
+        <select id="orderFilterYear" onchange="renderOrders(ordersData)" class="bg-slate-50 border border-slate-300 text-slate-700 text-sm font-medium rounded-xl px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-teal-600">
+          <option value="">ทุกปีการศึกษา</option>
+          <option value="2569">ปี 2569</option>
+          <option value="2568">ปี 2568</option>
+          <option value="2567">ปี 2567</option>
+          <option value="2566">ปี 2566</option>
+          <option value="2565">ปี 2565</option>
+          <option value="2564">ปี 2564</option>
+        </select>
+        <button onclick="filterOrders('all')" id="orderBtnAll" class="px-4 py-2 rounded-xl bg-slate-800 text-white shadow-sm transition">ทุกวิชา</button>
+        <button onclick="filterOrders('491-492')" id="orderBtn491" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition">วิชา 491-492</button>
+        <button onclick="filterOrders('495')" id="orderBtn495" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition">วิชา 495</button>
+      </div>
+    </div>
+
+    <div id="ordersContainer" class="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div class="col-span-full py-12 text-center text-slate-400 bg-white rounded-2xl border border-dashed border-slate-300">
+        <i class="fa-solid fa-spinner fa-spin text-2xl mb-2 text-teal-600"></i>
+        <p class="text-sm font-medium">กำลังตรวจสอบและซิงค์ไฟล์จาก Google Drive...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script ระบบ -->
+  <script>
+    const CSV_URL_491 = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTrW9GpaJG-9QaZrINFZrr_VtxqGJ6g0QbH6-RGcTb6HwrD-lw1r15VtgwOHu8wEPl81NQQXJqjbe0S/pub?gid=360168415&single=true&output=csv';
+    const CSV_URL_495 = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTrW9GpaJG-9QaZrINFZrr_VtxqGJ6g0QbH6-RGcTb6HwrD-lw1r15VtgwOHu8wEPl81NQQXJqjbe0S/pub?gid=204138491&single=true&output=csv';
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxAMBSRfD4aMfltEAIBd8AMKYeXp25qWuh3_2lh4sTK8HFsybs_neMBEieNq-M4wFtq/exec';
+
+    let projectsData = [];
+    let ordersData = [];
+    let currentTab = '491-492';
+    let currentOrderFilter = 'all';
+    let currentSelectedTag = ''; // 🛠️ ตัวแปรเก็บแท็กที่กำลังถูกคลิกกรอง
+
+    const officialProfessors = [
+      "ดร.วรินทร์ วัฒนพรพรหม",
+      "ดร.วิธวินท์ สุสุทธิ",
+      "ดร.ศุวิล ชมชัยยา",
+      "นางพิรุฬห์ ดิลกพัฒน์พงศา",
+      "ผศ.ดร.กานต์ธิดา กุศลมโน",
+      "ผศ.ดร.ชัชวาลย์ วัชราเรืองวิทย์",
+      "ผศ.ดร.ฐิตาภรณ์ กนกรัตน",
+      "ผศ.ดร.ธีระพล สลีวงศ์",
+      "ผศ.ดร.ปริเวท วรรณโกวิท",
+      "ผศ.ดร.พีระศักดิ์ อินทรไพบูลย์",
+      "รศ.ชูเกียรติ วรสุชีพ",
+      "รศ.ดร.ณรรฐคุณ วิรุฬห์ศรี",
+      "รศ.ดร.ทรงพล ศรีวงศ์ษา",
+      "รศ.ดร.วิบูลศักดิ์ วัฒายุ",
+      "รศ.ดร.วิราวรรณ ชินวิริยสิทธิ์",
+      "รศ.ดร.อนิรุธ ลวดทรง"
+    ];
+
+    window.onload = function() {
+      loadAllGoogleSheetData();
+      populateProfessors();
+      loadDriveOrders();
+    };
+
+    function switchView(viewName) {
+      document.querySelectorAll('.main-view').forEach(el => el.classList.add('hidden'));
+      document.getElementById('view' + viewName.charAt(0).toUpperCase() + viewName.slice(1)).classList.remove('hidden');
+
+      ['Home', 'Projects', 'Stats', 'Orders'].forEach(v => {
+        const btn = document.getElementById('nav' + v);
+        if (btn) {
+          btn.className = (v.toLowerCase() === viewName) 
+            ? "px-3.5 py-2 rounded-xl bg-white/25 font-semibold shadow-sm transition" 
+            : "px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 transition";
+        }
+      });
+
+      if (viewName === 'stats') renderStats();
+    }
+
+    function loadDriveOrders() {
+      fetch(APPS_SCRIPT_URL)
+        .then(res => res.json())
+        .then(data => {
+          ordersData = data;
+          renderOrders(ordersData);
+        })
+        .catch(err => {
+          console.error('Error loading drive orders:', err);
+          document.getElementById('ordersContainer').innerHTML = `<div class="col-span-full py-12 text-center text-red-500 bg-white rounded-2xl border border-slate-200"><p class="text-sm">ไม่สามารถโหลดข้อมูลจาก Google Drive ได้ กรุณาตรวจสอบลิงก์ Apps Script</p></div>`;
+        });
+    }
+
+    function filterOrders(courseType) {
+      currentOrderFilter = courseType;
+      
+      const btnAll = document.getElementById('orderBtnAll');
+      const btn491 = document.getElementById('orderBtn491');
+      const btn495 = document.getElementById('orderBtn495');
+
+      btnAll.className = "px-4 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition";
+      btn491.className = "px-4 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition";
+      btn495.className = "px-4 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition";
+
+      if (courseType === 'all') {
+        btnAll.className = "px-4 py-2 rounded-xl bg-slate-800 text-white shadow-sm transition";
+      } else if (courseType === '491-492') {
+        btn491.className = "px-4 py-2 rounded-xl bg-[#1b6b70] text-white shadow-sm transition";
+      } else if (courseType === '495') {
+        btn495.className = "px-4 py-2 rounded-xl bg-blue-600 text-white shadow-sm transition";
+      }
+
+      renderOrders(ordersData);
+    }
+
+    function renderOrders(orders) {
+      const container = document.getElementById('ordersContainer');
+      const yearFilterVal = document.getElementById('orderFilterYear').value;
+      
+      let filtered = orders.filter(item => {
+        if (currentOrderFilter !== 'all' && item.course !== currentOrderFilter) return false;
+        if (yearFilterVal && item.year !== yearFilterVal) return false;
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="col-span-full py-16 text-center text-slate-400 bg-white rounded-2xl border border-dashed border-slate-300 shadow-sm"><i class="fa-solid fa-folder-open text-5xl mb-3 text-slate-300"></i><p class="text-base font-medium">ไม่พบเอกสารคำสั่งแต่งตั้งตามเงื่อนไขที่เลือก</p></div>`;
+        return;
+      }
+
+      filtered.sort((a, b) => b.year.localeCompare(a.year) || a.round.localeCompare(b.round));
+
+      container.innerHTML = filtered.map(file => {
+        const courseBadgeClass = file.course === '495' 
+          ? 'bg-blue-50 text-blue-700 border-blue-200' 
+          : 'bg-teal-50 text-[#1b6b70] border-teal-100';
+
+        const courseBadge = `<span class="${courseBadgeClass} text-xs font-bold px-3 py-1 rounded-full border shadow-sm"><i class="fa-solid fa-book mr-1"></i> วิชา ${file.course}</span>`;
+        const yearBadge = `<span class="bg-slate-100 text-slate-700 text-xs font-bold px-3 py-1 rounded-full border border-slate-200 shadow-sm"><i class="fa-solid fa-calendar-days mr-1"></i> ปี ${file.year}</span>`;
+        const roundBadge = file.round ? `<span class="bg-amber-50 text-amber-700 text-xs font-bold px-3 py-1 rounded-full border border-amber-200 shadow-sm"><i class="fa-solid fa-clock-rotate-left mr-1"></i> รอบ ${file.round.replace('R', '')}</span>` : '';
+
+        return `
+          <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between space-y-4 hover:shadow-md transition">
+            <div class="space-y-3">
+              <div class="flex flex-wrap items-center gap-2">
+                ${courseBadge}
+                ${yearBadge}
+                ${roundBadge}
+              </div>
+              <h3 class="font-bold text-lg text-slate-800 leading-snug pt-1">คำสั่งแต่งตั้งคณะกรรมการสอบโครงงาน</h3>
+              <p class="text-xs text-slate-400 truncate">ไฟล์: ${file.fileName}</p>
+            </div>
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2">
+              <a href="${file.viewUrl}" target="_blank" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5">
+                <i class="fa-solid fa-eye"></i> ดูไฟล์
+              </a>
+              <a href="${file.downloadUrl}" target="_blank" class="bg-[#1b6b70] hover:bg-[#155357] text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 shadow-sm">
+                <i class="fa-solid fa-download"></i> ดาวน์โหลด
+              </a>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function loadAllGoogleSheetData() {
+      Promise.all([
+        fetch(CSV_URL_491).then(res => res.text()),
+        fetch(CSV_URL_495).then(res => res.text())
+      ])
+      .then(([text491, text495]) => {
+        const data491 = parseCSVStrict(text491, '491-492');
+        const data495 = parseCSVStrict(text495, '495');
+        projectsData = [...data491, ...data495];
+        applyFilters();
+        updateDashboardStats();
+      })
+      .catch(error => console.error('Error loading google sheets data:', error));
+    }
+
+    function updateDashboardStats() {
+      document.getElementById('statTotalProjects').textContent = projectsData.length;
+    }
+
+    function getCleanName(name) {
+      if (!name) return '';
+      return name
+        .replace(/^\d+[\.\)]\s*/g, '')
+        .replace(/(ผศ\.ดร\.|รศ\.ดร\.|ดร\.|ผศ\.|รศ\.|ผู้ช่วยศาสตราจารย์|รองศาสตราจารย์|นางสาว|นาย|นาง)\s*/g, '')
+        .replace(/\./g, '')
+        .trim();
+    }
+
+    function matchProfessorName(rawName) {
+      if (!rawName) return '';
+      let cleanedRaw = getCleanName(rawName);
+      if (!cleanedRaw) return rawName.trim();
+      
+      let found = officialProfessors.find(prof => {
+        let cleanProf = getCleanName(prof);
+        return cleanProf === cleanedRaw || cleanProf.includes(cleanedRaw) || cleanedRaw.includes(cleanProf);
+      });
+      
+      return found ? found : rawName.replace(/^\d+[\.\)]\s*/g, '').replace(/\.\s+/g, '.').trim();
+    }
+
+    function parseCSVStrict(text, courseType) {
+      let rows = [], row = [], inQuotes = false, field = '';
+      for (let i = 0; i < text.length; i++) {
+        let c = text[i], nextC = text[i + 1];
+        if (c === '"') {
+          if (inQuotes && nextC === '"') { field += '"'; i++; }
+          else { inQuotes = !inQuotes; }
+        } else if (c === ',' && !inQuotes) {
+          row.push(field.trim()); field = '';
+        } else if ((c === '\r' && nextC === '\n' && !inQuotes) || (c === '\n' && !inQuotes)) {
+          if (c === '\r') i++;
+          row.push(field.trim()); rows.push(row); row = []; field = '';
+        } else { field += c; }
+      }
+      if (field !== '' || row.length > 0) { row.push(field.trim()); rows.push(row); }
+
+      const result = [];
+      for (let i = 1; i < rows.length; i++) {
+        const cols = rows[i];
+        if (!cols || cols.length < 5 || !cols[0]) continue;
+
+        let course = cols[0] || courseType;
+        let year = cols[1] || '';
+        let titleTh = (cols[2] || '').replace(/[\r\n]+/g, ' ');
+        let titleEn = (cols[3] || '').replace(/[\r\n]+/g, ' ');
+        let studentRaw = cols[4] || '';
+        
+        let advisor = '';
+        let coAdvisor = '';
+        let externalAdvisor = '';
+        let committeeRaw = '';
+
+        if (courseType === '495') {
+          advisor = matchProfessorName(cols[5] || '');
+          coAdvisor = matchProfessorName(cols[6] || '');
+          externalAdvisor = cols[7] || '';
+          committeeRaw = cols[8] || '';
+        } else {
+          advisor = matchProfessorName(cols[5] || '');
+          coAdvisor = matchProfessorName(cols[6] || '');
+          committeeRaw = cols[7] || '';
+        }
+
+        let studentsArr = [];
+        if (studentRaw) {
+          let rawLines = studentRaw.split('\n').map(s => s.trim()).filter(s => s !== '');
+          rawLines.forEach(line => {
+            let matchParen = line.match(/^(.*?)\s*\((\d+)\)$/);
+            if (matchParen) {
+              let namePart = matchParen[1].trim();
+              let idPart = matchParen[2].trim();
+              studentsArr.push(namePart);
+              studentsArr.push(`รหัสนักศึกษา: ${idPart}`);
+            } else {
+              studentsArr.push(line);
+            }
+          });
+        }
+
+        const tagsArr = generateSmartTags(titleTh, titleEn);
+        
+        let committeeArr = [];
+        if (committeeRaw) {
+          let rawCommLines = committeeRaw.split('\n').map(s => s.trim()).filter(s => s !== '');
+          rawCommLines.forEach(line => {
+            let cleanedLine = line.replace(/^\d+[\.\)]\s*/g, '').replace(/\.\s+/g, '.').trim();
+            let matched = matchProfessorName(cleanedLine);
+            if (matched) {
+              committeeArr.push(matched);
+            } else if (cleanedLine) {
+              committeeArr.push(cleanedLine);
+            }
+          });
+        }
+
+        result.push({ 
+          course, year, titleTh, titleEn, 
+          students: studentsArr, tags: tagsArr, 
+          advisor, coAdvisor, externalAdvisor, 
+          committee: committeeArr 
+        });
+      }
+      return result;
+    }
+
+    function generateSmartTags(titleTh, titleEn) {
+      const text = (titleTh + " " + titleEn).toLowerCase();
+      const tags = [];
+      if (text.includes('ai') || text.includes('simulation') || text.includes('flooding')) tags.push({ name: 'AI / Simulation', color: 'bg-[#288489]' });
+      if (text.includes('game') || text.includes('เกม') || text.includes('ศึกษา')) tags.push({ name: 'EdTech / Game', color: 'bg-[#20696e]' });
+      if (text.includes('data') || text.includes('analysis') || text.includes('system')) tags.push({ name: 'Data & Systems', color: 'bg-blue-600' });
+      if (tags.length === 0) tags.push({ name: 'Project Study', color: 'bg-[#288489]' });
+      return tags;
+    }
+
+    function populateProfessors() {
+      const sortedProfs = [...officialProfessors].sort((a, b) => a.localeCompare(b, 'th'));
+      const select = document.getElementById('filterProf');
+      select.innerHTML = '<option value="">Professor Name (อาจารย์ทุกคน)</option>';
+      sortedProfs.forEach(prof => {
+        const opt = document.createElement('option');
+        opt.value = prof;
+        opt.textContent = prof;
+        select.appendChild(opt);
+      });
+    }
+
+    function switchTab(course) {
+      currentTab = course;
+      document.getElementById('tab491').className = (course === '491-492') ? "flex-1 sm:flex-none px-5 py-2 rounded-xl bg-[#288489] text-white shadow-sm transition" : "flex-1 sm:flex-none px-5 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition";
+      document.getElementById('tab495').className = (course === '495') ? "flex-1 sm:flex-none px-5 py-2 rounded-xl bg-[#288489] text-white shadow-sm transition" : "flex-1 sm:flex-none px-5 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition";
+      applyFilters();
+    }
+
+    // 🛠️ ฟังก์ชันคลิกแท็กเพื่อกรอง
+    function filterByTag(tagName) {
+      currentSelectedTag = tagName;
+      document.getElementById('activeTagName').textContent = tagName;
+      document.getElementById('activeTagBar').classList.remove('hidden');
+      applyFilters();
+    }
+
+    // 🛠️ ฟังก์ชันล้างตัวกรองแท็ก
+    function clearTagFilter() {
+      currentSelectedTag = '';
+      document.getElementById('activeTagBar').classList.add('hidden');
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const courseVal = currentTab;
+      const yearVal = document.getElementById('filterYear').value;
+      const roleVal = document.getElementById('filterRole').value;
+      const profVal = document.getElementById('filterProf').value;
+      const searchVal = document.getElementById('searchInput').value.toLowerCase().trim();
+
+      const filtered = projectsData.filter(item => {
+        if (courseVal && item.course !== courseVal) return false;
+        if (yearVal && item.year !== yearVal) return false;
+        // กรองตามแท็กที่เลือก
+        if (currentSelectedTag) {
+          const hasTag = item.tags.some(t => t.name === currentSelectedTag);
+          if (!hasTag) return false;
+        }
+        if (profVal) {
+          if (roleVal === 'advisor' && item.advisor !== profVal) return false;
+          if (roleVal === 'coAdvisor' && item.coAdvisor !== profVal) return false;
+          if (roleVal === 'committee' && (!item.committee || !item.committee.includes(profVal))) return false;
+          if (!roleVal && item.advisor !== profVal && item.coAdvisor !== profVal && (!item.committee || !item.committee.includes(profVal))) return false;
+        }
+        if (searchVal) {
+          const matchTh = item.titleTh.toLowerCase().includes(searchVal);
+          const matchEn = item.titleEn.toLowerCase().includes(searchVal);
+          const matchStudent = item.students.some(s => s.toLowerCase().includes(searchVal));
+          if (!matchTh && !matchEn && !matchStudent) return false;
+        }
+        return true;
+      });
+      renderGrid(filtered);
+    }
+
+    function renderGrid(projects) {
+      const container = document.getElementById('projectsGrid');
+      if (projects.length === 0) {
+        container.innerHTML = `<div class="col-span-full py-16 text-center text-slate-400 bg-white rounded-2xl border border-dashed border-slate-300 shadow-sm"><i class="fa-solid fa-folder-open text-5xl mb-3 text-slate-300"></i><p class="text-base font-medium">ไม่พบข้อมูลโครงงานที่ค้นหาตามเงื่อนไข</p></div>`;
+        return;
+      }
+      container.innerHTML = projects.map(p => `
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between hover:shadow-md transition">
+          <div>
+            <div class="bg-[#2c3e50] text-white p-4">
+              <h3 class="font-bold text-lg leading-snug">${p.titleTh}</h3>
+              <p class="text-sm font-normal text-slate-300 mt-1">(${p.titleEn})</p>
+            </div>
+            <div class="p-4 space-y-3">
+              <div class="space-y-1.5 text-sm text-slate-800">
+                ${p.students.map(std => {
+                  const isId = std.includes('รหัส') || std.match(/^\d+$/);
+                  return isId 
+                    ? `<div class="pl-8 text-xs text-slate-500 font-normal">${std}</div>` 
+                    : `<div class="flex items-center gap-2 pt-1"><div class="w-6 h-6 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-xs shrink-0"><i class="fa-solid fa-user"></i></div><span class="font-semibold">${std}</span></div>`;
+                }).join('')}
+              </div>
+              <!-- 🛠️ แท็กแบบคลิกได้ (Clickable Tags) พร้อมเอฟเฟกต์ hover และ cursor pointer -->
+              <div class="flex flex-wrap gap-1.5 pt-2">
+                ${p.tags.map(t => `<button onclick="filterByTag('${t.name}')" class="text-xs font-medium px-3 py-1 rounded-full text-white ${t.color} hover:opacity-80 hover:scale-105 transition cursor-pointer shadow-sm"><i class="fa-solid fa-tag mr-1 text-[10px]"></i>${t.name}</button>`).join('')}
+              </div>
+            </div>
+          </div>
+          <div class="p-4 bg-slate-50 border-t border-slate-100 text-sm space-y-2 text-slate-700">
+            ${p.advisor ? `<div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-xs shrink-0"><i class="fa-solid fa-user-tie"></i></div><div><span class="text-xs text-slate-400 block font-normal">Advisor</span><span class="font-medium text-slate-800">${p.advisor}</span></div></div>` : ''}
+            ${p.coAdvisor ? `<div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-xs shrink-0"><i class="fa-solid fa-user-tie"></i></div><div><span class="text-xs text-slate-400 block font-normal">Co-advisor</span><span class="font-medium text-slate-800">${p.coAdvisor}</span></div></div>` : ''}
+            
+            <!-- External Advisor -->
+            ${p.externalAdvisor ? `
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-xs shrink-0">
+                  <i class="fa-solid fa-building-user"></i>
+                </div>
+                <div>
+                  <span class="text-xs text-slate-400 block font-normal">External Advisor (ที่ปรึกษาหน่วยงาน)</span>
+                  <span class="font-medium text-slate-800 block">${p.externalAdvisor.split('\n')[0]}</span>${p.externalAdvisor.split('\n').slice(1).map(line => `
+                    <span class="font-medium text-slate-800 block">${line}</span>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
+
+            <!-- Committee -->
+            ${p.committee && p.committee.length > 0 ? `
+              <div class="flex items-start gap-3 pt-1 border-t border-slate-200/60">
+                <div class="w-8 h-8 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-xs shrink-0 mt-0.5">
+                  <i class="fa-solid fa-users"></i>
+                </div>
+                <div>
+                  <span class="text-xs text-slate-400 block font-normal">Committee</span>
+                  ${p.committee.map((comm, index) => `
+                    <span class="font-medium text-slate-800 block">${index + 1}. ${comm}</span>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderStats() {
+      const container = document.getElementById('statsContent');
+      const searchVal = document.getElementById('searchProfInput').value.toLowerCase().trim();
+
+      let statsMap = {};
+      officialProfessors.forEach(prof => { statsMap[prof] = { advisor: 0, coAdvisor: 0, committee: 0 }; });
+
+      projectsData.forEach(p => {
+        if (statsMap[p.advisor]) statsMap[p.advisor].advisor++;
+        if (statsMap[p.coAdvisor]) statsMap[p.coAdvisor].coAdvisor++;
+        if (p.committee) {
+          p.committee.forEach(c => { if (statsMap[c]) statsMap[c].committee++; });
+        }
+      });
+
+      const filteredProfs = Object.keys(statsMap).filter(prof => prof.toLowerCase().includes(searchVal));
+
+      if (filteredProfs.length === 0) {
+        container.innerHTML = `<div class="col-span-full py-16 text-center text-slate-400 bg-white rounded-2xl border border-dashed border-slate-300 shadow-sm"><i class="fa-solid fa-user-slash text-4xl mb-3 text-slate-300"></i><p class="text-sm font-medium">ไม่พบรายชื่ออาจารย์ที่ค้นหา</p></div>`;
+        return;
+      }
+
+      container.innerHTML = filteredProfs.map(prof => {
+        const data = statsMap[prof];
+        const isFemale = prof.includes('ฐิตาภรณ์') || prof.includes('กานต์ธิดา') || prof.includes('พิรุฬห์') || prof.includes('วิราวรรณ');
+        const avatarIcon = isFemale ? 'fa-user-nurse' : 'fa-user-tie';
+
+        return `
+          <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between space-y-4 hover:shadow-md transition">
+            <div class="flex items-center gap-3">
+              <div class="w-11 h-11 rounded-2xl bg-teal-50 text-[#1b6b70] flex items-center justify-center text-lg shadow-inner">
+                <i class="fa-solid ${avatarIcon}"></i>
+              </div>
+              <div>
+                <h3 class="font-bold text-slate-800 text-base leading-tight">${prof}</h3>
+                <p class="text-xs text-slate-400 mt-0.5">Applied Computer Science</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 pt-1">
+              <div class="bg-teal-50 text-teal-800 p-2.5 rounded-xl text-center border border-teal-100">
+                <div class="text-[11px] font-medium opacity-80">ที่ปรึกษาหลัก</div>
+                <div class="text-sm font-bold mt-0.5">${data.advisor} เรื่อง</div>
+              </div>
+              <div class="bg-slate-50 text-slate-600 p-2.5 rounded-xl text-center border border-slate-200">
+                <div class="text-[11px] font-medium opacity-80">ที่ปรึกษาร่วม</div>
+                <div class="text-sm font-bold mt-0.5">${data.coAdvisor} เรื่อง</div>
+              </div>
+              <div class="bg-amber-50 text-amber-800 p-2.5 rounded-xl text-center border border-amber-100">
+                <div class="text-[11px] font-medium opacity-80">กรรมการสอบ</div>
+                <div class="text-sm font-bold mt-0.5">${data.committee} เรื่อง</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  </script>
+</body>
+</html>
